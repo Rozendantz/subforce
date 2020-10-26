@@ -13,8 +13,8 @@ from subforce import core
 sub_file = core.args.sublist_file[0]
 dir_file = core.args.dirlist_file[0]
 
-subfile_iterator = 0
-dirfile_iterator = 0
+subfile_iterator = [0]
+dirfile_iterator = [0]
 
 subfile_readstack = []
 dirfile_readstack = []
@@ -47,16 +47,16 @@ def files_exist(subfile, dirfile):
 
 async def read_from_file(list_file, file_lines, read_stack, file_iterator):
     global sleep_inc
-    if len(read_stack) < stack_size:
-        print('less than {}'.format(stack_size))
-        # read from the files and place in subfile_readstack and dirfile_readstack
-        # keep adding subdirs until you run out, you will need to read from
-        # the file everytime you move to a new subdomain
+
+    if file_iterator[0] == file_lines -1:
+        print(' *** TEST: file_iterator')
+        return
+
+    if len(read_stack) < stack_size -1:
         with open(list_file) as f:
             for i in range(1, file_lines):
-                file_iterator = i
-                print('linecache.getline():', linecache.getline(list_file, file_iterator, module_globals=None).strip())
-                read_stack.append(linecache.getline(list_file, file_iterator, module_globals=None).strip())
+                file_iterator[0] = i
+                read_stack.append(linecache.getline(list_file, file_iterator[0], module_globals=None).strip())
                 await asyncio.sleep(sleep_inc)
                 if i == stack_size:
                     await asyncio.sleep(sleep_inc)
@@ -73,13 +73,13 @@ async def concat_addr(subread, dirread):
     global subfile_lines
     global dirfile_lines
 
-    print('subfile_lines: {}',subfile_lines.result())
-    print('dirfile_lines: {}',dirfile_lines.result())
+    #print('subfile_lines: {}',subfile_lines.result())
+    #print('dirfile_lines: {}',dirfile_lines.result())
 
     domains_list_size = len(domains_list)
     domains_remainder = stack_size - domains_list_size
 
-    if domains_list_size < stack_size:
+    if domains_list_size < stack_size -1:
         for i, j in enumerate(subfile_readstack):
             for j, k in enumerate(dirfile_readstack):
                 domains_list.insert(0, subfile_readstack[i] + dirfile_readstack[j])
@@ -113,18 +113,17 @@ async def file_lines():
     global subfile_lines
     global dirfile_lines
 
-    print(sub_file)
-    print(dir_file)
-    print('check_lines')
+    #print(sub_file)
+    #print(dir_file)
+    #print('check_lines')
     if files_exist(sub_file, dir_file):
         subfile_lines = files_loop.create_task(get_lines(sub_file))
         dirfile_lines = files_loop.create_task(get_lines(dir_file))
         await asyncio.wait([subfile_lines, dirfile_lines])
-        print('subfile_lines = {}'.format(subfile_lines.result()))
-        print('dirfile_lines = {}'.format(dirfile_lines.result()))
+        #print('subfile_lines = {}'.format(subfile_lines.result()))
+        #print('dirfile_lines = {}'.format(dirfile_lines.result()))
 
-async def main():
-    global domains_list
+async def load_files():
     global sub_file
     global dir_file
     global subfile_lines
@@ -134,31 +133,43 @@ async def main():
     global subfile_readstack
     global dirfile_readstack
 
-    x = 0
-    y = 0
+    read_from_sub_file = main_loop.create_task(read_from_file(sub_file, subfile_lines.result(), subfile_readstack, subfile_iterator))
+    read_from_dir_file = main_loop.create_task(read_from_file(dir_file, dirfile_lines.result(), dirfile_readstack, dirfile_iterator))
+    concat_sub_to_dir = main_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
+    await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir])
 
-    # iterate through the files and perform string swap
-    # split adding domains to list and reading reading from files/string concat into two separate functions
-    if files_exist(sub_file, dir_file):
-        read_from_sub_file = main_loop.create_task(read_from_file(sub_file, subfile_lines.result(), subfile_readstack, subfile_iterator))
-        read_from_dir_file = main_loop.create_task(read_from_file(dir_file, dirfile_lines.result(), dirfile_readstack, dirfile_iterator))
-        #await asyncio.wait([read_from_sub_file, read_from_dir_file])
-        concat_sub_to_dir = main_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
-        #ping_addr = main_loop.create_task(ping_address(domains_list))
-        #await asyncio.wait([concat_sub_to_dir, ping_addr])
-        #await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir, ping_addr])
-        await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir])
+
+async def ping():
         for ip in domains_list:
             ping_addr = main_loop.create_task(ping_address(domains_list))
         await asyncio.wait([ping_addr])
 
+
+def check_domains_list():
+    if len(domains_list) < (stack_size -1) / 2:
+        return True
+
+
+async def main():
+    global domains_list
+    x = 0
+    y = 0
+
+    if files_exist(sub_file, dir_file):
+        await load_files()
+        await ping()
+        if check_domains_list():
+            print('domains_list low')
+            await load_files()
+
+        '''
         print('substack:')
         print(subfile_readstack)
         print('dirstack:')
         print(dirfile_readstack)
         print('domains_list:')
         print(domains_list)
-
+        '''
 
 if __name__ == "__main__":
     try:
@@ -188,3 +199,4 @@ if __name__ == "__main__":
 # switch user agents
 # instruct ppl to use this tool with proxychains for more discrete operation
 # check for robots.txt first!!
+# fix the subfile/dirfile_iterator problem, try using an array
