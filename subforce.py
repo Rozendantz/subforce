@@ -1,6 +1,8 @@
 import os.path
 import sys
 import asyncio
+import linecache
+import mechanicalsoup as ms
 
 from subforce import sub_file
 from subforce import dir_file
@@ -8,33 +10,34 @@ from subforce import core
 
 # check if the provided list files exist
 
-sublist_file = core.args.sublist_file
-dirlist_file = core.args.dirlist_file
-
-dirfile_exist = False
-subfile_exist = False
+sub_file = core.args.sublist_file[0]
+dir_file = core.args.dirlist_file[0]
 
 subfile_iterator = 0
 dirfile_iterator = 0
 
-sublist_read = []
-dirlist_read = []
-domain_list = []
+subfile_readstack = []
+dirfile_readstack = []
+
+domains_list = []
 results_list = []
 
-def files_exist(subfile, dirfile):
-    global subfile_exist
-    global dirfile_exist
+subfile_lines = 0
+dirfile_lines = 0
 
-    if os.path.isfile(subfile[0]):
+sleep_inc = 0.01
+stack_size = 100
+
+def files_exist(subfile, dirfile):
+    if os.path.isfile(subfile):
         subfile_exist = True
     else:
-        print('sublist_file does not exit')
+        print('sub_file does not exit')
 
-    if os.path.isfile(dirfile[0]):
+    if os.path.isfile(dirfile):
         dirfile_exist = True
     else:
-        print('dirlist_file does not exit')
+        print('dir_file does not exit')
 
     if subfile_exist and dirfile_exist:
         return True
@@ -42,34 +45,138 @@ def files_exist(subfile, dirfile):
         sys.exit()
 
 
-async def read_from_files(sublist, dirlist):
-    global sublist_read
-    global dirlist_read
-    if sublist_read.length < 100 or dirlist_read.length < 100:
-        print('less than 100')
-        # read from the files and place in sublist_read and dirlist_read
+async def read_from_file(list_file, file_lines, read_stack, file_iterator):
+    global sleep_inc
+    if len(read_stack) < stack_size:
+        print('less than {}'.format(stack_size))
+        # read from the files and place in subfile_readstack and dirfile_readstack
         # keep adding subdirs until you run out, you will need to read from
         # the file everytime you move to a new subdomain
+        with open(list_file) as f:
+            for i in range(1, file_lines):
+                file_iterator = i
+                print('linecache.getline():', linecache.getline(list_file, file_iterator, module_globals=None).strip())
+                read_stack.append(linecache.getline(list_file, file_iterator, module_globals=None).strip())
+                await asyncio.sleep(sleep_inc)
+                if i == stack_size:
+                    await asyncio.sleep(sleep_inc)
     else:
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(sleep_inc)
 
 
 async def concat_addr(subread, dirread):
+    global results_list
     global domains_list
-    if domains_list.length < 100:
-        print('less than 100')
-        # read from sublist_read and dirlist_read and place in domains_list
+    global sleep_inc
+    global subfile_readstack
+    global dirfile_readstack
+    global subfile_lines
+    global dirfile_lines
+
+    print('subfile_lines: {}',subfile_lines.result())
+    print('dirfile_lines: {}',dirfile_lines.result())
+
+    domains_list_size = len(domains_list)
+    domains_remainder = stack_size - domains_list_size
+
+    if domains_list_size < stack_size:
+        for i, j in enumerate(subfile_readstack):
+            for j, k in enumerate(dirfile_readstack):
+                domains_list.insert(0, subfile_readstack[i] + dirfile_readstack[j])
+                await asyncio.sleep(sleep_inc)
     else:
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(sleep_inc)
 
 
 async def ping_address(domain):
     global results_list
-    if domains_list.length > 0:
-        print('greater than 0')
-        # do something
+    global domains_list
+    global sleep_inc
+    if len(domains_list) > 0:
+        print('ip: {}'.format(domains_list.pop()))
+        await asyncio.sleep(sleep_inc + 1)
     else:
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(sleep_inc + 1)
+
+
+async def get_lines(list_file):
+    with open(list_file) as f:
+        for i, l in enumerate(f):
+            await asyncio.sleep(0.1)
+            pass
+    return i + 1
+
+
+async def file_lines():
+    global sub_file
+    global dir_file
+    global subfile_lines
+    global dirfile_lines
+
+    print(sub_file)
+    print(dir_file)
+    print('check_lines')
+    if files_exist(sub_file, dir_file):
+        subfile_lines = files_loop.create_task(get_lines(sub_file))
+        dirfile_lines = files_loop.create_task(get_lines(dir_file))
+        await asyncio.wait([subfile_lines, dirfile_lines])
+        print('subfile_lines = {}'.format(subfile_lines.result()))
+        print('dirfile_lines = {}'.format(dirfile_lines.result()))
+
+async def main():
+    global domains_list
+    global sub_file
+    global dir_file
+    global subfile_lines
+    global dirfile_lines
+    global subfile_iterator
+    global dirfile_iterator
+    global subfile_readstack
+    global dirfile_readstack
+
+    x = 0
+    y = 0
+
+    # iterate through the files and perform string swap
+    # split adding domains to list and reading reading from files/string concat into two separate functions
+    if files_exist(sub_file, dir_file):
+        read_from_sub_file = main_loop.create_task(read_from_file(sub_file, subfile_lines.result(), subfile_readstack, subfile_iterator))
+        read_from_dir_file = main_loop.create_task(read_from_file(dir_file, dirfile_lines.result(), dirfile_readstack, dirfile_iterator))
+        #await asyncio.wait([read_from_sub_file, read_from_dir_file])
+        concat_sub_to_dir = main_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
+        #ping_addr = main_loop.create_task(ping_address(domains_list))
+        #await asyncio.wait([concat_sub_to_dir, ping_addr])
+        #await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir, ping_addr])
+        await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir])
+        for ip in domains_list:
+            ping_addr = main_loop.create_task(ping_address(domains_list))
+        await asyncio.wait([ping_addr])
+
+        print('substack:')
+        print(subfile_readstack)
+        print('dirstack:')
+        print(dirfile_readstack)
+        print('domains_list:')
+        print(domains_list)
+
+
+if __name__ == "__main__":
+    try:
+        files_loop = asyncio.get_event_loop()
+        files_loop.set_debug(1)
+        files_loop.run_until_complete(file_lines())
+        main_loop = asyncio.get_event_loop()
+        main_loop.set_debug(1)
+        main_loop.run_until_complete(main())
+    except Exception as e:
+        pass
+        print(e)
+    finally:
+        main_loop.close()
+        files_loop.close()
+
+# enumerate through sublist file and add sub folders from dirlist file
+# do this inside a pool and make sure it starts firing requests incrementally as we move through the files
 
 # NOTES:
 # pop as you go along each list
@@ -77,32 +184,7 @@ async def ping_address(domain):
 # read http codes 
 # format output file
 # set default output file
-
-async def main():
-    global domain_list
-    global sublist_file
-    global dirlist_file
-
-    print('test')
-    # iterate through the files and perform string swap
-    # split adding domains to list and reading reading from files/string concat into two separate functions
-
-    if files_exist(sublist_file, dirlist_file):
-        loop.create_task(read_from_files(sublist_file, dirlist_file))
-        loop.create_task(concat_addr(sublist_read, dirlist_read))
-        loop.create_task(ping_address(domain_list))
-
-
-if __name__ == "__main__":
-    try:
-        loop = asyncio.get_event_loop()
-        loop.set_debug(1)
-        loop.run_until_complete(main())
-    except Exception as e:
-        pass
-    finally:
-        loop.close()
-
-# enumerate through sublist file and add sub folders from dirlist file
-# do this inside a pool and make sure it starts firing requests incrementally as we move through the files
-
+# random delays between requests
+# switch user agents
+# instruct ppl to use this tool with proxychains for more discrete operation
+# check for robots.txt first!!
