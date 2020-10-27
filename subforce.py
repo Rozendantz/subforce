@@ -217,7 +217,7 @@ async def get():
         headers = result.headers
         cookiejar = result.cookies
         cookies = cookiejar.items()
-        print(f"{result.status_code: <1} - {result.url:^1}")
+        #print(f"{result.status_code: <1} - {result.url:^1}")
         file.write("\n\n")
         file.write("***************************************************************************************************************************************\n")
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
@@ -239,6 +239,14 @@ async def get():
             file.write("\t{}\n".format(cookie))
         result_bytes = result.content
         html_formatted = result_bytes.decode('utf-8')
+        soup = bs(html_formatted, "html.parser")
+        file.write("- style tags: \n")
+        for tags in soup.find_all('style'):
+            #prettify the css
+            file.write("{}\n\n".format(tags))
+        for tags in soup.find_all('script'):
+            #prettify the javascript
+            file.write("{}\n\n".format(tags))
         file.write("- content: \n")
         file.write("\t{}".format(html_formatted))
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
