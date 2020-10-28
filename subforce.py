@@ -113,13 +113,16 @@ def files_exist(subfile, dirfile):
 async def read_from_file(list_file, file_lines, read_stack, file_iterator):
     global sleep_inc
 
-    if file_iterator[-1] == file_lines -1:
+    if file_iterator[-1] >= file_lines -1:
         return
 
     if len(read_stack) < stack_size -1:
         with open(list_file) as f:
-            for i in range(1, file_lines-1):
-                read_stack.append(linecache.getline(list_file, i, module_globals=None).strip())
+            for i in range(1, file_lines+1):
+                file_iterator.append(i)
+                line = linecache.getline(list_file, i, module_globals=None).strip()
+                if len(line) > 0:
+                    read_stack.append(line)
                 await asyncio.sleep(sleep_inc)
                 if i == stack_size:
                     await asyncio.sleep(sleep_inc)
@@ -138,6 +141,9 @@ async def concat_addr(subread, dirread):
 
     domains_list_size = len(domains_list)
     domains_remainder = stack_size - domains_list_size
+
+    #print("subfile_readstack: {}".format(subfile_readstack))
+    #print("dirfile_readstack: {}".format(dirfile_readstack))
 
     if domains_list_size < stack_size -1:
         for i, j in enumerate(subfile_readstack):
@@ -162,8 +168,15 @@ async def get_url(domain):
     agent = swap_user_agent()
     browser.append(ms.Browser(session=None, soup_config={'features': 'lxml'}, requests_adapters=None, raise_on_404=False, user_agent=agent))
     if len(domains_list) > 0:
-        results_list.append(browser[-1].get('http://'+domains_list.pop()+'?'))
-        await asyncio.sleep(sleep_inc + 1)
+        try:
+            result = browser[-1].get('http://'+domains_list.pop()+'?')
+            results_list.append(result)
+            await asyncio.wait(result)
+            await asyncio.sleep(sleep_inc + 1)
+        except:
+            print("network error: {}".format(e))
+        finally:
+            return
     else:
         await asyncio.sleep(sleep_inc + 1)
 
@@ -217,12 +230,12 @@ async def get():
         headers = result.headers
         cookiejar = result.cookies
         cookies = cookiejar.items()
-        #print(f"{result.status_code: <1} - {result.url:^1}")
+        print(f"{result.status_code: <1} - {result.url:^1}")
         file.write("\n\n")
         file.write("***************************************************************************************************************************************\n")
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
-        file.write("                                                           {}                                                                          \n".format(result.url))
+        file.write("    {}                                                                          \n".format(result.url))
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
         file.write("- status: {}\n".format(result.status_code))
@@ -233,7 +246,6 @@ async def get():
         file.write("- headers: \n")
         for key,value in headers.items():
             file.write("\t{keys}: {values}\n".format(keys=key, values=value))
-        #file.write("headers_links: {}\n".format(header_links))
         file.write("- cookies: \n")
         for cookie in cookies:
             file.write("\t{}\n".format(cookie))
@@ -248,7 +260,7 @@ async def get():
             #prettify the javascript
             file.write("{}\n\n".format(tags))
         file.write("- content: \n")
-        file.write("\t{}".format(html_formatted))
+        file.write("\t{}\n\n".format(html_formatted))
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
         file.write("***************************************************************************************************************************************\n")
@@ -272,21 +284,18 @@ async def main():
     if files_exist(sub_file, dir_file):
         await load_files()
         await get()
-        if check_domains_list():
-            await load_files()
+        #if check_domains_list():
+        #    await load_files()
 
 
 if __name__ == "__main__":
     try:
         files_loop = asyncio.get_event_loop()
-        files_loop.set_debug(1)
         files_loop.run_until_complete(file_lines())
         main_loop = asyncio.get_event_loop()
-        main_loop.set_debug(1)
         main_loop.run_until_complete(main())
     except Exception as e:
         pass
-        #print(e)
     finally:
         files_loop.close()
         main_loop.close()
