@@ -221,55 +221,14 @@ async def concat_addr(subread, dirread):
     else:
         await asyncio.sleep(sleep_inc)
 
-'''
-async def build_get_list(domain, i, sema):
-    await sema.acquire()
-    global results_list
-    global sleep_inc
-    agent = user_agents.swap()
-    browser = ms.Browser(session=None, soup_config={'features': 'lxml'}, requests_adapters=None, raise_on_404=False, user_agent=agent)
-    if len(domains_list) > 0:
-        try:
-            results_list.append(browser.get('http://{}?'.format(domain)))
-            print("{status} - IP: {ip}".format(status=results_list[-1].status_code, ip=results_list[-1].url))
-            await asyncio.sleep(sleep_inc)
-        except:
-            print("network error: {}".format(e))
-        finally:
-            sema.release()
-            return
-    else:
-        await asyncio.sleep(sleep_inc)
-'''
-'''
-async def fetch(url, session):
-    """Fetch a url, using specified ClientSession."""
-    #fetch.start_time[url] = default_timer()
-    try:
-        async with session.get(url) as response:
-            resp = await response.read()
-            return resp
-    except:
-        print("Connection Error")
-
-async def get(domains_list):
-    """Launch requests for all web pages."""
-    tasks = []
-    async with aiohttp.ClientSession() as session:
-        for url in domains_list:
-            FQDM = "https://{domain}?".format(domain=url)
-            print(FQDM)
-            task = asyncio.ensure_future(fetch(FQDM, session))
-            tasks.append(task) # create list of tasks
-        results = await asyncio.gather(*tasks) # gather task responses
-'''
 
 
-# UPDATED
 def fetch(session, url):
     FQDM = "https://{domain}?".format(domain=url)
     try:
-        with session.get(FQDM) as response:
+        fresh_agent = user_agents.swap()
+        custom_header = {'user-agent': fresh_agent}
+        with session.get(FQDM, headers=custom_header) as response:
             status = response.status_code
             url = response.url
             print(f"=== {status} - {url}")
@@ -297,41 +256,6 @@ async def get(domains):
         return True
 
 
-
-'''
-async def get(url):
-    agent=user_agents.swap()
-    async with aiohttp.request('GET', url, headers={'User-Agent': agent}) as response:
-        if response.status != '404':
-            html = await response.text()
-            print(html)
-'''
-'''
-async def iterate_domains():
-    global domains_list
-
-    #domains_sema = asyncio.Semaphore(value=2)
-
-    for i,ip in enumerate(domains_list):
-        print("ip: {}".format(ip))
-        #ret = domains_loop.create_task(build_get_list(ip, i, domains_sema))
-        ret = domains_loop.create_task(get(ip))
-    await asyncio.wait([ret])
-    write_results_list_to_file()
-'''
-'''
-async def iterate_domains():
-    global domains_list
-    ret = domains_loop.create_task(get(domains_list))
-    await asyncio.wait([ret])
-    write_results_list_to_file()
-'''
-
-
-
-
-
-# UPDATED
 async def iterate_domains():
     global results
     global domains_list
@@ -340,7 +264,7 @@ async def iterate_domains():
 
 '''
 ***************************************************************************************************************************************************************************
-                                                                            TASK FNs
+                                                                           MAIN
 ***************************************************************************************************************************************************************************
 '''
 
