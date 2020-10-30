@@ -7,6 +7,10 @@ import mechanicalsoup as ms
 from bs4 import BeautifulSoup as bs
 import random
 
+import urllib.parse
+import sys
+
+import aiohttp
 
 from subforce import sub_file
 from subforce import dir_file
@@ -29,10 +33,10 @@ results_list = []
 subfile_lines = 0
 dirfile_lines = 0
 
-sleep_inc = 0.01
+sleep_inc = 0.0001
 stack_size = 100
 
-browser = []
+browser_list = []
 
 
 user_agents_list = [
@@ -122,6 +126,7 @@ async def read_from_file(list_file, file_lines, read_stack, file_iterator):
                 file_iterator.append(i)
                 line = linecache.getline(list_file, i, module_globals=None).strip()
                 if len(line) > 0:
+                    print("reading: {}".format(line))
                     read_stack.append(line)
                 await asyncio.sleep(sleep_inc)
                 if i == stack_size:
@@ -140,15 +145,12 @@ async def concat_addr(subread, dirread):
     global dirfile_lines
 
     domains_list_size = len(domains_list)
-    domains_remainder = stack_size - domains_list_size
-
-    #print("subfile_readstack: {}".format(subfile_readstack))
-    #print("dirfile_readstack: {}".format(dirfile_readstack))
 
     if domains_list_size < stack_size -1:
         for i, j in enumerate(subfile_readstack):
             for j, k in enumerate(dirfile_readstack):
                 domains_list.insert(0, subfile_readstack[i] + dirfile_readstack[j])
+                print("adding: {subf}{dirf} to domains_list".format(subf=subfile_readstack[i], dirf=dirfile_readstack[j]))
                 await asyncio.sleep(sleep_inc)
     else:
         await asyncio.sleep(sleep_inc)
@@ -157,34 +159,43 @@ async def concat_addr(subread, dirread):
 def swap_user_agent():
     global user_agents_list
     rand_num = random.randrange(len(user_agents_list))
-    print(user_agents_list[rand_num])
+    #print(user_agents_list[rand_num])
     return user_agents_list[rand_num]
 
 
-async def get_url(domain):
+async def get_url(domain, i):
     global results_list
-    global domains_list
+    global browser_list
     global sleep_inc
     agent = swap_user_agent()
-    browser.append(ms.Browser(session=None, soup_config={'features': 'lxml'}, requests_adapters=None, raise_on_404=False, user_agent=agent))
+    browser_list.append(ms.Browser(session=None, soup_config={'features': 'lxml'}, requests_adapters=None, raise_on_404=False, user_agent=agent))
     if len(domains_list) > 0:
         try:
-            result = browser[-1].get('http://'+domains_list.pop()+'?')
-            results_list.append(result)
-            await asyncio.wait(result)
-            await asyncio.sleep(sleep_inc + 1)
+            #result = browser_list[-1].get('http://'+domain+'?')
+            #results_list.append(result)
+            results_list.append(browser_list[i].get('http://{}?'.format(domain)))
+            print("{status} - IP: {ip}".format(status=results_list[-1].status_code, ip=results_list[-1].url))
+            #browser_list.pop(-1)
+            await asyncio.sleep(sleep_inc * 10)
         except:
             print("network error: {}".format(e))
         finally:
             return
     else:
-        await asyncio.sleep(sleep_inc + 1)
+        await asyncio.sleep(sleep_inc)
+
+
+'''
+async def fetch(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+'''
 
 
 async def get_lines(list_file):
     with open(list_file) as f:
         for i, l in enumerate(f):
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(sleep_inc)
             pass
     return i + 1
 
@@ -196,6 +207,7 @@ async def file_lines():
     global dirfile_lines
 
     if files_exist(sub_file, dir_file):
+        print("Reading files... ")
         subfile_lines = files_loop.create_task(get_lines(sub_file))
         dirfile_lines = files_loop.create_task(get_lines(dir_file))
         await asyncio.wait([subfile_lines, dirfile_lines])
@@ -210,7 +222,6 @@ async def load_files():
     global dirfile_iterator
     global subfile_readstack
     global dirfile_readstack
-
     read_from_sub_file = main_loop.create_task(read_from_file(sub_file, subfile_lines.result(), subfile_readstack, subfile_iterator))
     read_from_dir_file = main_loop.create_task(read_from_file(dir_file, dirfile_lines.result(), dirfile_readstack, dirfile_iterator))
     concat_sub_to_dir = main_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
@@ -218,11 +229,16 @@ async def load_files():
 
 
 async def get():
-    global browser
+    global browser_list
     global domains_list
 
-    for ip in domains_list:
-        get = main_loop.create_task(get_url(domains_list))
+    for i,ip in enumerate(domains_list):
+        print("ip: {}".format(ip))
+        get = main_loop.create_task(get_url(ip, i))
+        #async with aiohttp.ClientSession() as session:
+        #    for url in urls:
+        #        tasks.append(fetch(session, url))
+        #    htmls = await asyncio.gather(*tasks)
     await asyncio.wait([get])
 
     file = open('results.txt', 'a')
@@ -267,8 +283,9 @@ async def get():
         file.write("\n")
 
     file.close()
-    for session in browser:
+    for session in browser_list:
         session.close()
+
 
 def check_domains_list():
     if len(domains_list) < (stack_size -1) / 2:
@@ -293,12 +310,14 @@ if __name__ == "__main__":
         files_loop = asyncio.get_event_loop()
         files_loop.run_until_complete(file_lines())
         main_loop = asyncio.get_event_loop()
+        main_loop.set_debug(1)
         main_loop.run_until_complete(main())
     except Exception as e:
         pass
     finally:
         files_loop.close()
         main_loop.close()
+
 
 # enumerate through sublist file and add sub folders from dirlist file
 # do this inside a pool and make sure it starts firing requests incrementally as we move through the files
