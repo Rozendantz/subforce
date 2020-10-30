@@ -16,6 +16,13 @@ from subforce import sub_file
 from subforce import dir_file
 from subforce import core
 
+from resources import user_agents
+
+import requests
+
+from concurrent.futures import ThreadPoolExecutor
+
+
 # check if the provided list files exist
 
 sub_file = core.args.sublist_file[0]
@@ -25,76 +32,77 @@ subfile_iterator = [0]
 dirfile_iterator = [0]
 
 subfile_readstack = []
-dirfile_readstack = []
+dirfile_readstack = [""] #first element is blank so the base url will be fetched
 
 domains_list = []
 results_list = []
 
-subfile_lines = 0
-dirfile_lines = 0
-
 sleep_inc = 0.0001
 stack_size = 100
 
-browser_list = []
+#browser_list = []
 
+results = []
 
-user_agents_list = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
-    'Mozilla/5.0 (X11; CrOS x86_64 8172.45.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.64 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1',
-    'Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322)',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763',
-    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; KTXN)',
-    'Mozilla/5.0 (Windows NT 5.1; rv:7.0.1) Gecko/20100101 Firefox/7.0.1',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36',
-    'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
-    'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/605.1.15 (KHTML, like Gecko)',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:18.0) Gecko/20100101 Firefox/18.0',
-    'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)',
-    'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko)',
-    'Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1; 125LA; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362',
-    'Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)',
-    'Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.83 Safari/537.1',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
-    'Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 5.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/605.1.15 (KHTML, like Gecko)',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows 98)',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063',
-    'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36']
+'''
+***************************************************************************************************************************************************************************
+                                                                            FILE FNs
+***************************************************************************************************************************************************************************
+'''
+async def write_to_file(results_list):
+    file = open('results.txt', 'a')
+    print("Writing to log")
+    for result in results_list:
+        #print("writing...\n")
+        #print(result.headers)
+        #file.write("{}\n\n".format(result.headers))
+        headers = result.headers
+        cookiejar = result.cookies
+        cookies = cookiejar.items()
+        file.write("\n\n")
+        file.write("***************************************************************************************************************************************\n")
+        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
+        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
+        file.write("    {}                                                                          \n".format(result.url))
+        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
+        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
+        file.write("- status: {}\n".format(result.status_code))
+        file.write("- reason: {}\n".format(result.reason))
+        #file.write("- is redirect? {}\n".format(result.is_redirect))
+        #if result.is_redirect:
+        #    file.write("is permanent redirect? {}\n".format(result.is_permanent.redirect))
+        file.write("\n- headers: \n")
+        for key,value in headers.items():
+            file.write("\t{keys}: {values}\n".format(keys=key, values=value))
+        file.write("\n- cookies: \n")
+        for cookie in cookies:
+            file.write("\t{}\n".format(cookie))
+        result_bytes = result.content
+        html_formatted = result_bytes.decode('utf-8')
+        soup = bs(html_formatted, "html.parser")
+        file.write("\n----------------------\n")
+        file.write("-       style tags: \n")
+        file.write("----------------------\n\n")
+        for tags in soup.find_all('style'):
+            #prettify the css
+            file.write("{}\n\n".format(tags))
+        file.write("\n----------------------\n")
+        file.write("-       script tags: \n")
+        file.write("----------------------\n\n")
+        for tags in soup.find_all('script'):
+            #prettify the javascript
+            file.write("{}\n\n".format(tags))
+        file.write("\n----------------------\n")
+        file.write("-       links: \n")
+        file.write("----------------------\n\n")
+        for tags in soup.find_all('a'):
+            #prettify the javascript
+            file.write("{}\n\n".format(tags))
+        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
+        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
+        file.write("***************************************************************************************************************************************\n")
+        file.write("\n")
+    file.close()
 
 
 def files_exist(subfile, dirfile):
@@ -135,6 +143,64 @@ async def read_from_file(list_file, file_lines, read_stack, file_iterator):
         await asyncio.sleep(sleep_inc)
 
 
+async def get_lines(list_file):
+    with open(list_file) as f:
+        f.seek(0) #ensure you're at the start of the file..
+        first_char = f.read(1) #get the first character
+        if not first_char:
+            print("FAIL: the sub or dir files (or both) are empty") #first character is the empty string..
+            sys.exit()
+        else:
+            f.seek(0) #f
+            for i, l in enumerate(f):
+                await asyncio.sleep(sleep_inc)
+                pass
+            return i + 1
+
+
+async def file_lines():
+    global sub_file
+    global dir_file
+    #global subfile_lines
+    #global dirfile_lines
+
+    if files_exist(sub_file, dir_file):
+        print("Reading files... ")
+        subfile_lines = files_read_loop.create_task(get_lines(sub_file))
+        dirfile_lines = files_read_loop.create_task(get_lines(dir_file))
+        await asyncio.wait([subfile_lines, dirfile_lines])
+        return (subfile_lines, dirfile_lines)
+
+
+async def load_files():
+    global sub_file
+    global dir_file
+    global subfile_iterator
+    global dirfile_iterator
+    global subfile_readstack
+    global dirfile_readstack
+
+    (subfile_lines, dirfile_lines) = await file_lines()
+
+    read_from_sub_file = files_read_loop.create_task(read_from_file(sub_file, subfile_lines.result(), subfile_readstack, subfile_iterator))
+    read_from_dir_file = files_read_loop.create_task(read_from_file(dir_file, dirfile_lines.result(), dirfile_readstack, dirfile_iterator))
+    concat_sub_to_dir = files_read_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
+    await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir])
+
+
+async def write_log():
+    global results
+    print("write_log")
+    ret = files_write_loop.create_task(write_to_file(results))
+
+
+'''
+***************************************************************************************************************************************************************************
+                                                                            URL FNs
+***************************************************************************************************************************************************************************
+'''
+
+
 async def concat_addr(subread, dirread):
     global results_list
     global domains_list
@@ -155,168 +221,149 @@ async def concat_addr(subread, dirread):
     else:
         await asyncio.sleep(sleep_inc)
 
-
-def swap_user_agent():
-    global user_agents_list
-    rand_num = random.randrange(len(user_agents_list))
-    #print(user_agents_list[rand_num])
-    return user_agents_list[rand_num]
-
-
-async def get_url(domain, i):
+'''
+async def build_get_list(domain, i, sema):
+    await sema.acquire()
     global results_list
-    global browser_list
     global sleep_inc
-    agent = swap_user_agent()
-    browser_list.append(ms.Browser(session=None, soup_config={'features': 'lxml'}, requests_adapters=None, raise_on_404=False, user_agent=agent))
+    agent = user_agents.swap()
+    browser = ms.Browser(session=None, soup_config={'features': 'lxml'}, requests_adapters=None, raise_on_404=False, user_agent=agent)
     if len(domains_list) > 0:
         try:
-            #result = browser_list[-1].get('http://'+domain+'?')
-            #results_list.append(result)
-            results_list.append(browser_list[i].get('http://{}?'.format(domain)))
+            results_list.append(browser.get('http://{}?'.format(domain)))
             print("{status} - IP: {ip}".format(status=results_list[-1].status_code, ip=results_list[-1].url))
-            #browser_list.pop(-1)
-            await asyncio.sleep(sleep_inc * 10)
+            await asyncio.sleep(sleep_inc)
         except:
             print("network error: {}".format(e))
         finally:
+            sema.release()
             return
     else:
         await asyncio.sleep(sleep_inc)
-
-
 '''
-async def fetch(session, url):
-    async with session.get(url) as response:
-        return await response.text()
+'''
+async def fetch(url, session):
+    """Fetch a url, using specified ClientSession."""
+    #fetch.start_time[url] = default_timer()
+    try:
+        async with session.get(url) as response:
+            resp = await response.read()
+            return resp
+    except:
+        print("Connection Error")
+
+async def get(domains_list):
+    """Launch requests for all web pages."""
+    tasks = []
+    async with aiohttp.ClientSession() as session:
+        for url in domains_list:
+            FQDM = "https://{domain}?".format(domain=url)
+            print(FQDM)
+            task = asyncio.ensure_future(fetch(FQDM, session))
+            tasks.append(task) # create list of tasks
+        results = await asyncio.gather(*tasks) # gather task responses
 '''
 
 
-async def get_lines(list_file):
-    with open(list_file) as f:
-        for i, l in enumerate(f):
-            await asyncio.sleep(sleep_inc)
-            pass
-    return i + 1
+# UPDATED
+def fetch(session, url):
+    FQDM = "https://{domain}?".format(domain=url)
+    try:
+        with session.get(FQDM) as response:
+            status = response.status_code
+            url = response.url
+            print(f"=== {status} - {url}")
+            results.append(response)
+            return response
+    except:
+        print(f"Server at {url} not found")
+    finally:
+        pass
 
+async def get(domains):
+    global results
+    with ThreadPoolExecutor(max_workers=50) as executor:
+        with requests.Session() as session:
+            loop = asyncio.get_event_loop()
+            print('''\n\n
+                  ------------------------
+                          RESULTS
+                  ------------------------
+                \n
+                ''')
+            for url in domains:
+                loop.run_in_executor( executor, fetch, *(session, url))
 
-async def file_lines():
-    global sub_file
-    global dir_file
-    global subfile_lines
-    global dirfile_lines
-
-    if files_exist(sub_file, dir_file):
-        print("Reading files... ")
-        subfile_lines = files_loop.create_task(get_lines(sub_file))
-        dirfile_lines = files_loop.create_task(get_lines(dir_file))
-        await asyncio.wait([subfile_lines, dirfile_lines])
-
-
-async def load_files():
-    global sub_file
-    global dir_file
-    global subfile_lines
-    global dirfile_lines
-    global subfile_iterator
-    global dirfile_iterator
-    global subfile_readstack
-    global dirfile_readstack
-    read_from_sub_file = main_loop.create_task(read_from_file(sub_file, subfile_lines.result(), subfile_readstack, subfile_iterator))
-    read_from_dir_file = main_loop.create_task(read_from_file(dir_file, dirfile_lines.result(), dirfile_readstack, dirfile_iterator))
-    concat_sub_to_dir = main_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
-    await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir])
-
-
-async def get():
-    global browser_list
-    global domains_list
-
-    for i,ip in enumerate(domains_list):
-        print("ip: {}".format(ip))
-        get = main_loop.create_task(get_url(ip, i))
-        #async with aiohttp.ClientSession() as session:
-        #    for url in urls:
-        #        tasks.append(fetch(session, url))
-        #    htmls = await asyncio.gather(*tasks)
-    await asyncio.wait([get])
-
-    file = open('results.txt', 'a')
-    for result in results_list:
-        headers = result.headers
-        cookiejar = result.cookies
-        cookies = cookiejar.items()
-        print(f"{result.status_code: <1} - {result.url:^1}")
-        file.write("\n\n")
-        file.write("***************************************************************************************************************************************\n")
-        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
-        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
-        file.write("    {}                                                                          \n".format(result.url))
-        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
-        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
-        file.write("- status: {}\n".format(result.status_code))
-        file.write("- reason: {}\n".format(result.reason))
-        file.write("- is redirect? {}\n".format(result.is_redirect))
-        if result.is_redirect:
-            file.write("is permanent redirect? {}\n".format(result.is_permanent.redirect))
-        file.write("- headers: \n")
-        for key,value in headers.items():
-            file.write("\t{keys}: {values}\n".format(keys=key, values=value))
-        file.write("- cookies: \n")
-        for cookie in cookies:
-            file.write("\t{}\n".format(cookie))
-        result_bytes = result.content
-        html_formatted = result_bytes.decode('utf-8')
-        soup = bs(html_formatted, "html.parser")
-        file.write("- style tags: \n")
-        for tags in soup.find_all('style'):
-            #prettify the css
-            file.write("{}\n\n".format(tags))
-        for tags in soup.find_all('script'):
-            #prettify the javascript
-            file.write("{}\n\n".format(tags))
-        file.write("- content: \n")
-        file.write("\t{}\n\n".format(html_formatted))
-        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
-        file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
-        file.write("***************************************************************************************************************************************\n")
-        file.write("\n")
-
-    file.close()
-    for session in browser_list:
-        session.close()
-
-
-def check_domains_list():
-    if len(domains_list) < (stack_size -1) / 2:
         return True
 
 
-async def main():
+
+'''
+async def get(url):
+    agent=user_agents.swap()
+    async with aiohttp.request('GET', url, headers={'User-Agent': agent}) as response:
+        if response.status != '404':
+            html = await response.text()
+            print(html)
+'''
+'''
+async def iterate_domains():
     global domains_list
-    global results_list
-    x = 0
-    y = 0
 
-    if files_exist(sub_file, dir_file):
-        await load_files()
-        await get()
-        #if check_domains_list():
-        #    await load_files()
+    #domains_sema = asyncio.Semaphore(value=2)
 
+    for i,ip in enumerate(domains_list):
+        print("ip: {}".format(ip))
+        #ret = domains_loop.create_task(build_get_list(ip, i, domains_sema))
+        ret = domains_loop.create_task(get(ip))
+    await asyncio.wait([ret])
+    write_results_list_to_file()
+'''
+'''
+async def iterate_domains():
+    global domains_list
+    ret = domains_loop.create_task(get(domains_list))
+    await asyncio.wait([ret])
+    write_results_list_to_file()
+'''
+
+
+
+
+
+# UPDATED
+async def iterate_domains():
+    global results
+    global domains_list
+    ret = domains_loop.create_task(get(domains_list))
+
+
+'''
+***************************************************************************************************************************************************************************
+                                                                            TASK FNs
+***************************************************************************************************************************************************************************
+'''
 
 if __name__ == "__main__":
     try:
-        files_loop = asyncio.get_event_loop()
-        files_loop.run_until_complete(file_lines())
-        main_loop = asyncio.get_event_loop()
-        main_loop.set_debug(1)
-        main_loop.run_until_complete(main())
+        #file_sema = asyncio.BoundedSemaphore(value=10)
+
+        files_read_loop = asyncio.get_event_loop()
+        files_read_loop.run_until_complete(load_files())
+
+        domains_loop = asyncio.get_event_loop()
+        domains_loop.set_debug(1)
+        domains_loop.run_until_complete(iterate_domains())
+
+        files_write_loop = asyncio.get_event_loop()
+        files_write_loop.run_until_complete(write_log())
     except Exception as e:
+        print("****** EXCEPTION: {} ".format(e))
         pass
     finally:
-        files_loop.close()
-        main_loop.close()
+        files_read_loop.close()
+        domains_loop.close()
+        files_write_loop.close()
 
 
 # enumerate through sublist file and add sub folders from dirlist file
