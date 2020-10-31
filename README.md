@@ -1,6 +1,39 @@
-Usage:
+
+    --------------------------------------------------------------------------------------
+           _______           ______   _______  _______  _______  _______  _______
+      ---- (  ____ \|\     /|(  ___ \ (  ____ \(  ___  )(  ____ )(  ____ \(  ____ \ ----
+       --- | (    \/| )   ( || (   ) )| (    \/| (   ) || (    )|| (    \/| (    \/ ---
+        -- | (_____ | |   | || (__/ / | (__    | |   | || (____)|| |      | (__     --
+         - (_____  )| |   | ||  __ (  |  __)   | |   | ||     __)| |      |  __)    -
+                 ) || |   | || (  \ \ | (      | |   | || (\ (   | |      | (
+           /\____) || (___) || )___) )| )      | (___) || ) \ \__| (____/\| (____/
+           \_______)(_______)|/ \___/ |/       (_______)|/   \__/(_______/(_______/
+
+    --------------------------------------------------------------------------------------
+
+A tool which for forced browsing over all known subdomains. 
+Enumerate through a list of subdomains and conduct forced browsing using a dictionary file. 
+
+Files must be in linebyline format, csv is not currently supported
+
+
+usage: subforce --sublist/-s <sublist-file> --dirlist/-s <dirlist_file>
+  File must be linebyline format, csv is not currently supported
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SUBLIST_FILE, --sublist SUBLIST_FILE
+                        dictionary of subdomains obained with e.g. sublist3r, you can also enter subdomains directly via command params
+  -d DIRLIST_FILE, --dirlist DIRLIST_FILE
+                        dictionary list of sub-directories, you can also enter sub-dirs directly via command params
 
 ![Alt text](updatedrecording.gif?raw=true "Title")
+
+
+Sample output file: 
+
+![Alt text](outputrecording.gif?raw=true "Title")
+
 
 
 # Current State
