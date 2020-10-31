@@ -12,8 +12,6 @@ import sys
 
 import aiohttp
 
-from subforce import sub_file
-from subforce import dir_file
 from subforce import core
 
 from resources import user_agents
@@ -187,20 +185,6 @@ async def load_files():
     concat_sub_to_dir = files_read_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
     await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir])
 
-
-async def write_log():
-    global results
-    print("write_log")
-    ret = files_write_loop.create_task(write_to_file(results))
-
-
-'''
-***************************************************************************************************************************************************************************
-                                                                            URL FNs
-***************************************************************************************************************************************************************************
-'''
-
-
 async def concat_addr(subread, dirread):
     global results_list
     global domains_list
@@ -223,12 +207,24 @@ async def concat_addr(subread, dirread):
 
 
 
+async def write_log():
+    global results
+    print("write_log")
+    ret = files_write_loop.create_task(write_to_file(results))
+
+
+'''
+***************************************************************************************************************************************************************************
+                                                                            NETWORK FNs
+***************************************************************************************************************************************************************************
+'''
+
 def fetch(session, url):
     FQDM = "https://{domain}?".format(domain=url)
     try:
         fresh_agent = user_agents.swap()
         custom_header = {'user-agent': fresh_agent}
-        with session.get(FQDM, headers=custom_header) as response:
+        with session.get(FQDM, headers=custom_header, timeout=10) as response:
             status = response.status_code
             url = response.url
             print(f"=== {status} - {url}")
@@ -239,28 +235,50 @@ def fetch(session, url):
     finally:
         pass
 
+
 async def get(domains):
     global results
     with ThreadPoolExecutor(max_workers=50) as executor:
         with requests.Session() as session:
             loop = asyncio.get_event_loop()
-            print('''\n\n
-                  ------------------------
-                          RESULTS
-                  ------------------------
-                \n
-                ''')
+            print('''
+           #     \n\n
+           #       ------------------------
+           #               RESULTS
+           #       ------------------------
+           #     \n
+                '''
+                 )
             for url in domains:
                 loop.run_in_executor( executor, fetch, *(session, url))
 
         return True
 
+'''
+def get(page_url, timeout=10):
+    fresh_agent = user_agents.swap()
+    response = requests.get(url=page_url, timeout=timeout, headers=custom_header)
 
+async def threadpool():
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+    futures = []
+    for url in wiki_page_urls:
+        futures.append(
+            executor.submit(
+                get_wiki_page_existence, wiki_page_url=url, timeout=0.00001
+            )
+        )
+    for future in concurrent.futures.as_completed(futures):
+        try:
+            print(future.result())
+        except requests.ConnectTimeout:
+            print("ConnectTimeout.")
+'''
 async def iterate_domains():
     global results
     global domains_list
     ret = domains_loop.create_task(get(domains_list))
-
+    return
 
 '''
 ***************************************************************************************************************************************************************************
@@ -294,15 +312,17 @@ if __name__ == "__main__":
 # do this inside a pool and make sure it starts firing requests incrementally as we move through the files
 
 # NOTES:
-# pop as you go along each list
-# make sure to mimic a browser when doing get
-# read http codes 
-# format output file
-# set default output file
-# random delays between requests
-# switch user agents
+# make sure to mimic a browser when doing get... DONE
+# read http codes ... DONE
+# format output file ... DONE
+# set default output file ... DONE
+# random delays between requests ---
+# switch user agents... DONE
 # instruct ppl to use this tool with proxychains for more discrete operation
 # check for robots.txt first!!
-# fix the subfile/dirfile_iterator problem, try using an array
-# option to open directory tree in w3m???
-# add option for configuring ms.Browser()
+# fix the subfile/dirfile_iterator problem, try using an array... DONE
+# option to open directory tree in w3m??? (maybe dump content into individual files that can be opened)
+# add option for configuring ms.Browser() ----
+# add proxy support
+# add content discovery
+# add semaphores for using huge files
