@@ -27,7 +27,6 @@ optional arguments:
   -d DIRLIST_FILE, --dirlist DIRLIST_FILE
                         dictionary list of sub-directories, you can also enter sub-dirs directly via command params
 
-![Usage_gif](updatedrecording.gif?raw=true "Usage")
 
 
 Sample output file: 
