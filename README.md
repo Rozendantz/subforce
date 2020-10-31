@@ -1,23 +1,11 @@
 
-    --------------------------------------------------------------------------------------
-           _______           ______   _______  _______  _______  _______  _______
-      ---- (  ____ \|\     /|(  ___ \ (  ____ \(  ___  )(  ____ )(  ____ \(  ____ \ ----
-       --- | (    \/| )   ( || (   ) )| (    \/| (   ) || (    )|| (    \/| (    \/ ---
-        -- | (_____ | |   | || (__/ / | (__    | |   | || (____)|| |      | (__     --
-         - (_____  )| |   | ||  __ (  |  __)   | |   | ||     __)| |      |  __)    -
-                 ) || |   | || (  \ \ | (      | |   | || (\ (   | |      | (
-           /\____) || (___) || )___) )| )      | (___) || ) \ \__| (____/\| (____/
-           \_______)(_______)|/ \___/ |/       (_______)|/   \__/(_______/(_______/
+![Logo_png](logo.png?raw=true "Logo")
 
-    --------------------------------------------------------------------------------------
-
-A tool which for forced browsing over all known subdomains. 
-Enumerate through a list of subdomains and conduct forced browsing using a dictionary file. 
 
 Files must be in linebyline format, csv is not currently supported
 
 
-usage: subforce --sublist/-s <sublist-file> --dirlist/-s <dirlist_file>
+usage: subforce --sublist/-s <sublist-file> --dirlist/-s <dirlist-file>
   File must be linebyline format, csv is not currently supported
 
 optional arguments:
@@ -27,6 +15,7 @@ optional arguments:
   -d DIRLIST_FILE, --dirlist DIRLIST_FILE
                         dictionary list of sub-directories, you can also enter sub-dirs directly via command params
 
+![Usage_gif](updatedrecording.gif?raw=true "Usage")
 
 
 Sample output file: 
