@@ -22,8 +22,8 @@ print('''
 
           --------------------------------------------------------------------------------------
 
-                      A tool that enables forced browsing over all known subdomains.
-       Enumerate through a list of subdomains and conduct forced browsing using a dictionary file.
+                      A tool that enables forced browsing over all known subdomains
+        Enumerate through a list of subdomains and conduct forced browsing using a dictionary file
 
 ''')
 
