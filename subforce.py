@@ -3,22 +3,16 @@ import sys
 import asyncio
 import linecache
 import json
-import mechanicalsoup as ms
-from bs4 import BeautifulSoup as bs
-import random
-
-import urllib.parse
-import sys
-
-import aiohttp
-
-from subforce import core
-
-from resources import user_agents
-
 import requests
+import random
+import urllib.parse
 
 from concurrent.futures import ThreadPoolExecutor
+from bs4 import BeautifulSoup as bs
+
+from subforce import core
+from resources import user_agents
+
 
 
 # check if the provided list files exist
@@ -38,8 +32,6 @@ results_list = []
 sleep_inc = 0.0001
 stack_size = 100
 
-#browser_list = []
-
 results = []
 
 '''
@@ -51,9 +43,6 @@ async def write_to_file(results_list):
     file = open('results.txt', 'a')
     print("Writing to log")
     for result in results_list:
-        #print("writing...\n")
-        #print(result.headers)
-        #file.write("{}\n\n".format(result.headers))
         headers = result.headers
         cookiejar = result.cookies
         cookies = cookiejar.items()
@@ -94,8 +83,8 @@ async def write_to_file(results_list):
         file.write("-       links: \n")
         file.write("----------------------\n\n")
         for tags in soup.find_all('a'):
-            #prettify the javascript
-            file.write("{}\n\n".format(tags))
+            #prettify the links 
+            file.write("{}\n".format(tags))
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
         file.write("---------------------------------------------------------------------------------------------------------------------------------------\n")
         file.write("***************************************************************************************************************************************\n")
