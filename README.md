@@ -1,3 +1,8 @@
+Usage:
+
+![usage_instructions_screenrecord](https://github.com/[rozendantz]/[subforce]/blob/[master]/updatedrecording.gif?raw=true)
+
+
 # Current State
 
 v0.1:
@@ -13,11 +18,15 @@ v0.1:
 # Development Roadmap
 
 v1.0:
-- random delays between requests ---
-- dump content to individual files for navigating with browser
-- native open with w3m
+- custom output files
 - add proxy support
+- csv formatted subdomain and subdir files
+- custom response exclude i.e. 400, 403, Server Not Found
+- better print to screen format (tabled, paged etc)
+- randomized delays between requests
+- dump html content to individual files in a tree structure for navigating with browser
+- native open with w3m
 
 v2.0:
-- add database support (mysql? sqllite? mariadb? not sure tbh, feel free to yell suggestions xx)
-- add prelim content discovery for use with WFUZZ
+- database support (mysql? sqllite? mariadb? not sure tbh, feel free to yell suggestions xx)
+- prelim content discovery for use with WFUZZ
