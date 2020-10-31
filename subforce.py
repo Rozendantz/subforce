@@ -6,6 +6,8 @@ import json
 import requests
 import random
 import urllib.parse
+import colorama
+from colorama import Fore, Back, Style
 
 from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup as bs
@@ -41,7 +43,9 @@ results = []
 '''
 async def write_to_file(results_list):
     file = open('results.txt', 'a')
-    print("Writing to log")
+    print(Fore.YELLOW, end="")
+    print("\n\n=== Writing to log ===\n\n")
+    print(Style.RESET_ALL, end="")
     for result in results_list:
         headers = result.headers
         cookiejar = result.cookies
@@ -96,12 +100,18 @@ def files_exist(subfile, dirfile):
     if os.path.isfile(subfile):
         subfile_exist = True
     else:
+        print(Style.BRIGHT, end="")
+        print(Fore.RED, end="")
         print('sub_file does not exit')
+        print(Style.RESET_ALL, end="")
 
     if os.path.isfile(dirfile):
         dirfile_exist = True
     else:
+        print(Style.BRIGHT, end="")
+        print(Fore.RED, end="")
         print('dir_file does not exit')
+        print(Style.RESET_ALL, end="")
 
     if subfile_exist and dirfile_exist:
         return True
@@ -121,7 +131,11 @@ async def read_from_file(list_file, file_lines, read_stack, file_iterator):
                 file_iterator.append(i)
                 line = linecache.getline(list_file, i, module_globals=None).strip()
                 if len(line) > 0:
-                    print("reading: {}".format(line))
+                    print(Fore.YELLOW, end="")
+                    print("reading: ", end="")
+                    print(Fore.CYAN, end="")
+                    print(line)
+                    print(Style.RESET_ALL, end="")
                     read_stack.append(line)
                 await asyncio.sleep(sleep_inc)
                 if i == stack_size:
@@ -135,7 +149,10 @@ async def get_lines(list_file):
         f.seek(0) #ensure you're at the start of the file..
         first_char = f.read(1) #get the first character
         if not first_char:
+            print(Style.BRIGHT, end="")
+            print(Fore.RED, end="")
             print("FAIL: the sub or dir files (or both) are empty") #first character is the empty string..
+            print(Style.RESET_ALL, end="")
             sys.exit()
         else:
             f.seek(0) #f
@@ -152,7 +169,9 @@ async def file_lines():
     #global dirfile_lines
 
     if files_exist(sub_file, dir_file):
+        print(Fore.YELLOW, end="")
         print("Reading files... ")
+        print(Style.RESET_ALL, end="")
         subfile_lines = files_read_loop.create_task(get_lines(sub_file))
         dirfile_lines = files_read_loop.create_task(get_lines(dir_file))
         await asyncio.wait([subfile_lines, dirfile_lines])
@@ -190,7 +209,11 @@ async def concat_addr(subread, dirread):
         for i, j in enumerate(subfile_readstack):
             for j, k in enumerate(dirfile_readstack):
                 domains_list.insert(0, subfile_readstack[i] + dirfile_readstack[j])
-                print("adding: {subf}{dirf} to domains_list".format(subf=subfile_readstack[i], dirf=dirfile_readstack[j]))
+                print(Fore.YELLOW, end="")
+                print("adding: ", end="")
+                print(Fore.CYAN, end="")
+                print("{subf}{dirf}".format(subf=subfile_readstack[i], dirf=dirfile_readstack[j]))
+                print(Style.RESET_ALL, end="")
                 await asyncio.sleep(sleep_inc)
     else:
         await asyncio.sleep(sleep_inc)
@@ -199,7 +222,6 @@ async def concat_addr(subread, dirread):
 
 async def write_log():
     global results
-    print("write_log")
     ret = files_write_loop.create_task(write_to_file(results))
 
 
@@ -217,11 +239,31 @@ def fetch(session, url):
         with session.get(FQDM, headers=custom_header, timeout=10) as response:
             status = response.status_code
             url = response.url
-            print(f"=== {status} - {url}")
+            print(Style.NORMAL, end="")
+            print(Fore.WHITE, end="")
+            print("[ ", end="")
+            if status == 200:
+                print(Fore.GREEN, end="")
+            elif status == 403:
+                print(Fore.MAGENTA, end="")
+            else:
+                print(Fore.RED, end="")
+            print(status, end="")
+            print(Fore.WHITE, end="")
+            print(" ] - ", end="")
+            print(Fore.CYAN, end="")
+            print(url)
+            print(Style.RESET_ALL, end="")
             results.append(response)
             return response
     except:
-        print(f"Server at {url} not found")
+        print(Fore.RED, end="")
+        print(Style.DIM, end="")
+        print("Server at ", end="")
+        print(Fore.CYAN, end="")
+        print(url, end="")
+        print(Fore.RED, end="")
+        print(" not found")
     finally:
         pass
 
@@ -289,7 +331,10 @@ if __name__ == "__main__":
         files_write_loop = asyncio.get_event_loop()
         files_write_loop.run_until_complete(write_log())
     except Exception as e:
+        print(Fore.RED, end="")
+        print(Style.BRIGHT, end="")
         print("****** EXCEPTION: {} ".format(e))
+        print(Style.RESET_ALL, end="")
         pass
     finally:
         files_read_loop.close()

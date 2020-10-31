@@ -1,6 +1,13 @@
 import argparse
 import time
 
+import colorama
+from colorama import Fore, Back, Style
+colorama.init()
+print(Style.RESET_ALL, end="")
+#print(colorama.ansi.clear_screen())
+print(Fore.MAGENTA, end="")
+print(Style.BRIGHT, end="")
 print('''
 
           --------------------------------------------------------------------------------------
@@ -19,6 +26,8 @@ print('''
        Enumerate through a list of subdomains and conduct forced browsing using a dictionary file.
 
 ''')
+
+print(Style.NORMAL)
 
 time.sleep(1)
 
