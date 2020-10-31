@@ -27,12 +27,12 @@ optional arguments:
   -d DIRLIST_FILE, --dirlist DIRLIST_FILE
                         dictionary list of sub-directories, you can also enter sub-dirs directly via command params
 
-![Alt text](updatedrecording.gif?raw=true "Title")
+![Usage_gif](updatedrecording.gif?raw=true "Usage")
 
 
 Sample output file: 
 
-![Alt text](outputrecording.gif?raw=true "Title")
+![Output_file_gif](outputrecording.gif?raw=true "Output")
 
 
 
