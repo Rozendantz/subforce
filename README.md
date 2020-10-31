@@ -1,13 +1,11 @@
 <p align="center">
   <img src="logo.png" />
 </p>
-
-
-NOTE: Files must be in linebyline format, csv is not currently supported
-
 <p align="center">
   <img src="usage.png" />
 </p>
+
+NOTE: Files must be in linebyline format, csv is not currently supported
 
 ![Usage_gif](updatedrecording.gif?raw=true "Usage")
 
