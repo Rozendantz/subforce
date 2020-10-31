@@ -1,6 +1,7 @@
 Usage:
 
 ![usage_instructions_screenrecord](https://github.com/[rozendantz]/[subforce]/blob/[master]/updatedrecording.gif?raw=true)
+![Alt text](updatedrecording.gif?raw=true "Title")
 
 
 # Current State
