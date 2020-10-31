@@ -174,6 +174,7 @@ async def load_files():
     concat_sub_to_dir = files_read_loop.create_task(concat_addr(subfile_readstack, dirfile_readstack))
     await asyncio.wait([read_from_sub_file, read_from_dir_file, concat_sub_to_dir])
 
+
 async def concat_addr(subread, dirread):
     global results_list
     global domains_list

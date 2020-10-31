@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="logo.png" />
+  <img src="/.github/logo.png" />
 </p>
 <p align="center">
-  <img src="usage.png" />
+  <img src="/.github/usage.png" />
 </p>
 
 NOTE: Files must be in linebyline format, csv is not currently supported
 
-![Usage_gif](updatedrecording.gif?raw=true "Usage")
+![Usage_gif](/.github/updatedrecording.gif?raw=true "Usage")
 
 
 Sample output file: 
 
-![Output_file_gif](outputrecording.gif?raw=true "Output")
+![Output_file_gif](/.github/outputrecording.gif?raw=true "Output")
 
 
 
