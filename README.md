@@ -3,16 +3,11 @@
 </p>
 
 
-Files must be in linebyline format, csv is not currently supported
+NOTE: Files must be in linebyline format, csv is not currently supported
 
-
-usage: subforce --sublist/-s sublist-file --dirlist/-s dirlist-file
-  File must be linebyline format, csv is not currently supported
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -s SUBLIST_FILE, --sublist SUBLIST_FILE subdomain wordlist (e.g. generated from sublist3r)
-  -d DIRLIST_FILE, --dirlist DIRLIST_FILE subdirectory wordlist (e.g. /.git, /test, /login, /wp-admin etc)
+<p align="center">
+  <img src="usage.png" />
+</p>
 
 ![Usage_gif](updatedrecording.gif?raw=true "Usage")
 
