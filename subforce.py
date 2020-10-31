@@ -231,11 +231,11 @@ async def get(domains):
         with requests.Session() as session:
             loop = asyncio.get_event_loop()
             print('''
-           #     \n\n
-           #       ------------------------
-           #               RESULTS
-           #       ------------------------
-           #     \n
+                \n\n
+                  ------------------------
+                          RESULTS
+                  ------------------------
+                \n
                 '''
                  )
             for url in domains:
@@ -283,7 +283,6 @@ if __name__ == "__main__":
         files_read_loop.run_until_complete(load_files())
 
         domains_loop = asyncio.get_event_loop()
-        domains_loop.set_debug(1)
         domains_loop.run_until_complete(iterate_domains())
 
         files_write_loop = asyncio.get_event_loop()
