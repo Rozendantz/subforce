@@ -14,7 +14,7 @@
                       A tool that enables forced browsing over all known subdomains. 
        Enumerate through a list of subdomains and conduct forced browsing using a dictionary file. 
 
-![logo_png](logo.png?raw=true "Logo")
+      ![logo_png](logo.png?raw=true "Logo")
 
 Files must be in linebyline format, csv is not currently supported
 
