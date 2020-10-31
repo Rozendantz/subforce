@@ -6,15 +6,13 @@
 Files must be in linebyline format, csv is not currently supported
 
 
-usage: subforce --sublist/-s <sublist-file> --dirlist/-s <dirlist-file>
+usage: subforce --sublist/-s sublist-file --dirlist/-s dirlist-file
   File must be linebyline format, csv is not currently supported
 
 optional arguments:
   -h, --help            show this help message and exit
-  -s SUBLIST_FILE, --sublist SUBLIST_FILE
-                        dictionary of subdomains obained with e.g. sublist3r, you can also enter subdomains directly via command params
-  -d DIRLIST_FILE, --dirlist DIRLIST_FILE
-                        dictionary list of sub-directories, you can also enter sub-dirs directly via command params
+  -s SUBLIST_FILE, --sublist SUBLIST_FILE subdomain wordlist (e.g. generated from sublist3r)
+  -d DIRLIST_FILE, --dirlist DIRLIST_FILE subdirectory wordlist (e.g. /.git, /test, /login, /wp-admin etc)
 
 ![Usage_gif](updatedrecording.gif?raw=true "Usage")
 

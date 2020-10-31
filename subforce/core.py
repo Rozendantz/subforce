@@ -29,9 +29,9 @@ parser = argparse.ArgumentParser(prog='subforce', usage='''%(prog)s --sublist/-s
 
 parser.add_argument('-s', '--sublist', dest='sublist_file', action='append',
                     default=None, required=True,
-                    help='dictionary of subdomains obained with e.g. sublist3r, you can also enter subdomains directly via command params')
+                    help='subdomain wordlist (e.g. generated from sublist3r)')
 parser.add_argument('-d', '--dirlist', dest='dirlist_file', action='append',
                     default=None, required=True,
-                    help='dictionary list of sub-directories, you can also enter sub-dirs directly via command params')
+                    help='subdirectory wordlist (e.g. /.git, /test, /login, /wp-admin etc)')
 
 args = parser.parse_args()
