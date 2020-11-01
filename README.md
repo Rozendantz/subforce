@@ -14,7 +14,15 @@ Sample output file:
 
 ![Output_file_gif](/.github/outputrecording.gif?raw=true "Output")
 
+# PROXIES
 
+We have integrated proxy-list.download proxies as the default when you pass in the proxy flag. 
+
+Future integrations include:
+- scraperapi.com: premium proxy list that also handles CAPTCHAs
+- proxylist.live: single end-point proxy anonymizer, fresh proxy each request
+- getproxylist.com: same as above
+- 
 
 # Current State
 

@@ -3,6 +3,7 @@ import time
 
 import colorama
 from colorama import Fore, Back, Style
+
 colorama.init()
 print(Style.RESET_ALL, end="")
 #print(colorama.ansi.clear_screen())
@@ -44,6 +45,16 @@ required.add_argument('-s', '--sublist', dest='sublist_file', action='append',
 required.add_argument('-d', '--dirlist', dest='dirlist_file', action='append',
                     default=None, required=True,
                     help='subdirectory wordlist (e.g. /.git, /test, /login, /wp-admin etc)')
+parser.add_argument('-p', '--proxylist', dest='proxylist_file', action='append',
+                    default='None',required=False,
+                    help='proxy wordlist')
+parser.add_argument('-n', '--api_name', dest='api_name', action='append',
+                    default='None',required=False,
+                    help='proxy list name e.g. "scraper" etc...')
+parser.add_argument('-k', '--api_key', dest='api_key', action='append',
+                    default='None',required=False,
+                    help='proxy list api key')
+
 
 parser.parse_args(['-h'])
 

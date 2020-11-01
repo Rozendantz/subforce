@@ -21,6 +21,9 @@ from resources import user_agents
 
 sub_file = core.args.sublist_file[0]
 dir_file = core.args.dirlist_file[0]
+proxylist_file = core.args.proxylist_file[0]
+api_name = core.args.api_name[0]
+api_key = core.args.api_key[0]
 
 subfile_iterator = [0]
 dirfile_iterator = [0]
@@ -320,7 +323,10 @@ async def iterate_domains():
 
 if __name__ == "__main__":
     try:
-        #file_sema = asyncio.BoundedSemaphore(value=10)
+        if proxylist_file == None:
+            proxy.update_proxy_file('default', '', './resources/default_proxy_list.txt')
+        else:
+            proxy.update_proxy_file(api_name, api_key, proxylist_file)
 
         files_read_loop = asyncio.get_event_loop()
         files_read_loop.run_until_complete(load_files())
