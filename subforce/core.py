@@ -36,11 +36,15 @@ parser = argparse.ArgumentParser(prog='subforce', usage='''%(prog)s --sublist/-s
                                  description='''Enumerate through a list of subdomains and conduct forced browsing using a dictionary file.
                                  Files must be in linebyline format, csv is not currently supported''')
 
-parser.add_argument('-s', '--sublist', dest='sublist_file', action='append',
+required = parser.add_argument_group('required named arguments')
+
+required.add_argument('-s', '--sublist', dest='sublist_file', action='append',
                     default=None, required=True,
                     help='subdomain wordlist (e.g. generated from sublist3r)')
-parser.add_argument('-d', '--dirlist', dest='dirlist_file', action='append',
+required.add_argument('-d', '--dirlist', dest='dirlist_file', action='append',
                     default=None, required=True,
                     help='subdirectory wordlist (e.g. /.git, /test, /login, /wp-admin etc)')
+
+parser.parse_args(['-h'])
 
 args = parser.parse_args()
