@@ -14,16 +14,17 @@ from bs4 import BeautifulSoup as bs
 
 from subforce import core
 from resources import user_agents
-
+import proxy
 
 
 # check if the provided list files exist
 
 sub_file = core.args.sublist_file[0]
 dir_file = core.args.dirlist_file[0]
-proxylist_file = core.args.proxylist_file[0]
-api_name = core.args.api_name[0]
-api_key = core.args.api_key[0]
+proxylist_file = core.args.proxylist_file
+api_name = core.args.api_name
+api_key = core.args.api_key
+protocol = core.args.tcp_protocol
 
 subfile_iterator = [0]
 dirfile_iterator = [0]
@@ -322,12 +323,10 @@ async def iterate_domains():
 '''
 
 if __name__ == "__main__":
-    try:
-        if proxylist_file == None:
-            proxy.update_proxy_file('default', '', './resources/default_proxy_list.txt')
-        else:
-            proxy.update_proxy_file(api_name, api_key, proxylist_file)
+    print("Proxylist_file: {}".format(proxylist_file))
+    proxy.update_proxy_file(api_name, api_key, proxylist_file, protocol)
 
+    try:
         files_read_loop = asyncio.get_event_loop()
         files_read_loop.run_until_complete(load_files())
 

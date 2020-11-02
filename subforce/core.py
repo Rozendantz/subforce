@@ -46,16 +46,20 @@ required.add_argument('-d', '--dirlist', dest='dirlist_file', action='append',
                     default=None, required=True,
                     help='subdirectory wordlist (e.g. /.git, /test, /login, /wp-admin etc)')
 parser.add_argument('-p', '--proxylist', dest='proxylist_file', action='append',
-                    default='None',required=False,
+                    default='./resources/default_proxy_list.txt',required=False,
                     help='proxy wordlist')
 parser.add_argument('-n', '--api_name', dest='api_name', action='append',
-                    default='None',required=False,
+                    default='default',required=False,
                     help='proxy list name e.g. "scraper" etc...')
 parser.add_argument('-k', '--api_key', dest='api_key', action='append',
                     default='None',required=False,
                     help='proxy list api key')
+parser.add_argument('-t', '--tcp-protocol', dest='tcp_protocol', action='append',
+                    default='https',required=False,
+                    help='tcp protocol for proxy e.g. http, https, socks4, socks5. Default is https')
 
 
-parser.parse_args(['-h'])
+
+#parser.parse_args(['-h'])
 
 args = parser.parse_args()
