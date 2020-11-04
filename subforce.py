@@ -212,12 +212,18 @@ async def concat_addr(subread, dirread):
     if domains_list_size < stack_size -1:
         for i, j in enumerate(subfile_readstack):
             for j, k in enumerate(dirfile_readstack):
-                domains_list.insert(0, subfile_readstack[i] + dirfile_readstack[j])
                 print(Fore.YELLOW, end="")
                 print("adding: ", end="")
-                print(Fore.CYAN, end="")
-                print("{subf}{dirf}".format(subf=subfile_readstack[i], dirf=dirfile_readstack[j]))
-                print(Style.RESET_ALL, end="")
+                if len(k) and k[0] != '/':
+                    domains_list.insert(0, subfile_readstack[i] + '/' + dirfile_readstack[j])
+                    print(Fore.CYAN, end="")
+                    print("{domain}".format(domain=domains_list[0]))
+                    print(Style.RESET_ALL, end="")
+                else:
+                    domains_list.insert(0, subfile_readstack[i] + dirfile_readstack[j])
+                    print(Fore.CYAN, end="")
+                    print("{domain}".format(domain=domains_list[0]))
+                    print(Style.RESET_ALL, end="")
                 await asyncio.sleep(sleep_inc)
     else:
         await asyncio.sleep(sleep_inc)
