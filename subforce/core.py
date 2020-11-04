@@ -45,6 +45,6 @@ required.add_argument('-d', '--dirlist', dest='dirlist_file', action='append',
                     default=None, required=True,
                     help='subdirectory wordlist (e.g. /.git, /test, /login, /wp-admin etc)')
 
-parser.parse_args(['-h'])
+#parser.parse_args(['-h'])
 
 args = parser.parse_args()

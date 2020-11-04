@@ -15,31 +15,30 @@ Sample output file:
 ![Output_file_gif](/.github/outputrecording.gif?raw=true "Output")
 
 
-
 # Current State
 
 v0.1:
 - ingest subdomain and subdirectory files
-- forced browsing across all given subdomains
+- forced-browsing/content-discovery across all given subdomains
 - output response headers, links, scripts (stripped from response object) to results.txt file
 - swaps out user agents between requests
 
-# Currently not supported but on roadmap:
-- native proxy support (for now just use proxychains please)
-- database support
 
 # Development Roadmap
 
 v1.0:
-- custom output files
+- target domain with sub wordlist
+- full input sanitization i.e. input domain without .com.* namespace or http/https
+- custom output
 - add proxy support
 - csv formatted subdomain and subdir files
 - custom response exclude i.e. 400, 403, Server Not Found
 - better print to screen format (tabled, paged etc)
 - randomized delays between requests
-- dump html content to individual files in a tree structure for navigating with browser
 - native open with w3m
 
 v2.0:
-- database support (mysql? sqllite? mariadb? not sure tbh, feel free to yell suggestions xx)
-- prelim content discovery for use with WFUZZ
+- database support (NoSQL not sure whether mongo or redis, feel free to yell suggestions xx)
+- input data from database via flags e.g. --use-cookie, --load-forms
+- intelligent content sniffing, scan through http-200 responses in output file and flag interesting finds
+
