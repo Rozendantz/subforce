@@ -27,6 +27,7 @@ v0.1:
 # Development Roadmap
 
 v1.0:
+- add support for api tokens and custom cookies in header
 - target domain with sub wordlist
 - full input sanitization i.e. input domain without .com.* namespace or http/https
 - custom output
@@ -41,4 +42,4 @@ v2.0:
 - database support (NoSQL not sure whether mongo or redis, feel free to yell suggestions xx)
 - input data from database via flags e.g. --use-cookie, --load-forms
 - intelligent content sniffing, scan through http-200 responses in output file and flag interesting finds
-
+- special store: auth cookies, api tokens, keys
